@@ -1,0 +1,1 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto"; --other pg versions
