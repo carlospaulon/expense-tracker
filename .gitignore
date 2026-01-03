@@ -40,9 +40,13 @@ application-local.yml
 application-local.yaml
 application-prod.yml
 application-prod.yaml
+
+# Env files
 .env
 .env.local
 .env.*.local
+*.env
+!.env.example
 
 ### Logs ###
 *.log
@@ -65,3 +69,9 @@ Desktop.ini
 *.tmp
 *~
 .#*
+
+# Docker
+postgres-data/
+docker-data/
+*.sql.backup
+dump.sql
