@@ -18,7 +18,7 @@ public record SignUpRequest(
 
         @NotBlank(message = "Password cannot be blank")
         @Size(min = 8, max = 255, message = "Password must be between 8 and 255 characters")
-        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,255}$", message = "Password too weak, create a new stronger password")
+        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{8,255}$", message = "Password must contain uppercase, lowercase, number and special character")
         String password
 ) {
 }
