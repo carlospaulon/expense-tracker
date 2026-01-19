@@ -9,7 +9,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-//Lombok...
 @Entity
 @Table(name = "users")
 @Getter
@@ -32,8 +31,8 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role = UserRole.USER; //enum
+    @Column(nullable = false, length = 50)
+    private UserRole role; //enum
 
     @CreationTimestamp
     @Column(nullable = false)
