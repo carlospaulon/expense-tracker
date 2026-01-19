@@ -7,6 +7,7 @@ import com.carlos.expensetracker.dto.response.SignUpResponse;
 import com.carlos.expensetracker.entity.User;
 import com.carlos.expensetracker.entity.enums.UserRole;
 import com.carlos.expensetracker.exception.BadRequestException;
+import com.carlos.expensetracker.exception.ErrorMessages;
 import com.carlos.expensetracker.exception.UnauthorizedException;
 import com.carlos.expensetracker.repository.UserRepository;
 import com.carlos.expensetracker.security.CustomUserDetails;
@@ -42,14 +43,14 @@ public class AuthServiceImpl implements AuthService{
         if (userRepository.existsByEmail(request.email())) {
             log.warn("Signup failed: Email already registered - {}", request.email());
 
-            throw new BadRequestException("Email already registered");
+            throw new BadRequestException(ErrorMessages.EMAIL_ALREADY_EXISTS);
         }
 
         //if username exist
         if (userRepository.existsByUsername(request.username())) {
             log.warn("Signup failed: Username already registered - {}", request.username());
 
-            throw new BadRequestException("Username already registered");
+            throw new BadRequestException(ErrorMessages.USERNAME_ALREADY_EXISTS);
         }
 
         //create user
@@ -113,7 +114,7 @@ public class AuthServiceImpl implements AuthService{
 
         } catch (AuthenticationException ex) {
             log.warn("Authentication failed for user: {}", request.email());
-            throw new UnauthorizedException("Invalid credentials");
+            throw new UnauthorizedException(ErrorMessages.INVALID_CREDENTIALS);
         }
 
     }
