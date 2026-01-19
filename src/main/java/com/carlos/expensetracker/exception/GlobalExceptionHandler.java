@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -27,7 +26,7 @@ public class GlobalExceptionHandler {
         log.error("Bad request: {}", ex.getMessage());
 
         ErrorResponse error = buildErrorMessage(
-                ex.getMessage(),
+                ErrorMessages.BAD_REQUEST,
                 HttpStatus.BAD_REQUEST,
                 request
         );
@@ -44,7 +43,7 @@ public class GlobalExceptionHandler {
         log.error("Unauthorized: {}", ex.getMessage());
 
         ErrorResponse error = buildErrorMessage(
-                ex.getMessage(),
+                ErrorMessages.UNAUTHORIZED,
                 HttpStatus.UNAUTHORIZED,
                 request
         );
@@ -61,7 +60,7 @@ public class GlobalExceptionHandler {
         log.error("Resource not found: {}", ex.getMessage());
 
         ErrorResponse error = buildErrorMessage(
-                ex.getMessage(),
+                ErrorMessages.RESOURCE_NOT_FOUND,
                 HttpStatus.NOT_FOUND,
                 request
         );
@@ -77,9 +76,9 @@ public class GlobalExceptionHandler {
         log.error("Internal server error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = buildErrorMessage(
-                ex.getMessage(),
+                ErrorMessages.INTERNAL_SERVER_ERROR,
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                request //tem alguma maneira de deixar sem estes nulls para as exceptions que não tem validationErrors?
+                request
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -99,10 +98,10 @@ public class GlobalExceptionHandler {
             );
         });
 
-        log.error("Validation failed: {}", validationErrors);
+        log.warn("Validation failed: {}", validationErrors);
 
         ErrorResponse error = buildErrorMessage(
-                ex.getMessage(), //It is not this type of message, i create a variable and give the message
+                ErrorMessages.VALIDATION_ERROR,
                 HttpStatus.BAD_REQUEST,
                 request,
                 validationErrors
