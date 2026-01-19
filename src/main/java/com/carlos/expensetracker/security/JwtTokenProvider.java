@@ -41,6 +41,11 @@ public class JwtTokenProvider {
         return buildToken(userDetails, now, expiryDate);
     }
 
+    public long getExpiresInSeconds() {
+        return jwtExpiresMs / 1000;
+    }
+
+    //generateTokenFromUserId i took it off
 
     public UUID getUserIdFromToken(String token) {
         Claims claims = extractClaims(token);
@@ -55,8 +60,7 @@ public class JwtTokenProvider {
         return claims.get("email", String.class);
     }
 
-
-    public Boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
             Jwts.parser()
                     .verifyWith(secretKey)
@@ -67,13 +71,14 @@ public class JwtTokenProvider {
                  ExpiredJwtException | UnsupportedJwtException |
                  IllegalArgumentException ex) {
 
-            log.error("Invalid JWT Token: {}", ex.getMessage());
+            log.warn("Invalid JWT Token: {}", ex.getMessage());
             return false;
         }
 
     }
 
-
+    //Inline return in both or try to change the method for use on both
+    //To let more usable, i could change the userDetails for every asked attribute
     private String buildToken(CustomUserDetails userDetails, Date now, Date expiryDate) {
         return Jwts.builder()
                 .subject(userDetails.getUserId().toString())
