@@ -1,5 +1,7 @@
 package com.carlos.expensetracker.repository;
 
+import com.carlos.expensetracker.dto.response.CategorySummaryResponse;
+import com.carlos.expensetracker.dto.response.ExpenseSummaryResponse;
 import com.carlos.expensetracker.entity.Expense;
 import com.carlos.expensetracker.entity.enums.ExpenseCategory;
 import org.springframework.data.domain.Page;
@@ -25,22 +27,25 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
             Pageable pageable
     );
 
-    List<Expense> findByUserIdAndExpenseDateBetween(
+    Page<Expense> findByUserIdAndExpenseDateBetween(
             UUID userId,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            Pageable pageable
     );
 
-    List<Expense> findByUserIdAndCategory(
+    Page<Expense> findByUserIdAndCategory(
             UUID userId,
-            ExpenseCategory category
+            ExpenseCategory category,
+            Pageable pageable
     );
 
-    List<Expense> findByUserIdAndCategoryAndExpenseDateBetween(
+    Page<Expense> findByUserIdAndCategoryAndExpenseDateBetween(
             UUID userId,
             ExpenseCategory category,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            Pageable pageable
     );
 
     Optional<Expense> findByIdAndUserId(
@@ -79,4 +84,42 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
             @Param("endDate") LocalDate endDate
     );
 
+    @Query("""
+             SELECT new com.carlos.expensetracker.dto.response.ExpenseSummaryResponse(
+                 COALESCE(SUM(e.amount), 0),
+                 COUNT(e),
+                 COALESCE(AVG(e.amount), 0),
+                 COALESCE(MIN(e.amount), 0),
+                 COALESCE(MAX(e.amount), 0),
+                 :startDate,
+                 :endDate
+                 )
+             FROM Expense e
+             WHERE e.user.id = :userId
+             AND e.expenseDate BETWEEN :startDate AND :endDate
+            """)
+    ExpenseSummaryResponse calculateSummary(
+            @Param("userId") UUID userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query("""
+            SELECT new com.carlos.expensetracker.dto.response.CategorySummaryResponse(
+                e.category,
+                COALESCE(SUM(e.amount), 0),
+                COUNT(e),
+                0
+            )
+            FROM Expense e
+            WHERE e.user.id = :userId
+            AND e.expenseDate BETWEEN :startDate AND :endDate
+            GROUP BY e.category
+            ORDER BY SUM(e.amount) DESC
+            """)
+    List<CategorySummaryResponse> calculateByCategory(
+            @Param("userId") UUID userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }
