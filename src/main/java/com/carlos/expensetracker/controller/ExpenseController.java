@@ -6,6 +6,7 @@ import com.carlos.expensetracker.dto.request.UpdateExpenseRequest;
 import com.carlos.expensetracker.dto.response.ExpenseResponse;
 import com.carlos.expensetracker.security.CustomUserDetails;
 import com.carlos.expensetracker.service.ExpenseService;
+import com.carlos.expensetracker.service.ExportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +29,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ExpenseController {
     private final ExpenseService expenseService;
+    private final ExportService exportService;
 
     @PostMapping
     public ResponseEntity<ExpenseResponse> createExpense(
@@ -109,5 +113,25 @@ public class ExpenseController {
 
         return ResponseEntity.ok(expenses);
     }
+
+    @GetMapping("/export/csv")
+    public ResponseEntity<byte[]> exportToCsv(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid ExpenseFilterRequest filter
+    ) {
+        UUID userId = userDetails.getUserId();
+        log.info("GET /api/expenses/export/csv - user: {}", userId);
+
+        byte[] csv = exportService.exportToCsv(userId, filter);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("attachment", "expenses.csv");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csv);
+    }
+
 
 }
