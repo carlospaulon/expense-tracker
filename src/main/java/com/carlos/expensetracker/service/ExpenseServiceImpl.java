@@ -1,6 +1,7 @@
 package com.carlos.expensetracker.service;
 
 import com.carlos.expensetracker.dto.request.CreateExpenseRequest;
+import com.carlos.expensetracker.dto.request.ExpenseFilterRequest;
 import com.carlos.expensetracker.dto.request.UpdateExpenseRequest;
 import com.carlos.expensetracker.dto.response.ExpenseResponse;
 import com.carlos.expensetracker.entity.Expense;
@@ -107,36 +108,46 @@ public class ExpenseServiceImpl implements ExpenseService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<ExpenseResponse> getExpensesByCategory(UUID userId, ExpenseCategory category) {
-        log.info("Fetching expenses for user: {} and category: {}", userId, category);
+    public Page<ExpenseResponse> getExpensesWithFilter(UUID userId, ExpenseFilterRequest filter, Pageable pageable) {
+        log.info("Fetching expenses for user: {} with filters: {}", userId, filter);
 
-        return expenseRepository.findByUserIdAndCategory(userId, category)
-                .stream()
-                .map(expenseMapper::toResponse)
-                .toList();
-    }
+        if (filter == null || !filter.hasFilters()) {
+            return expenseRepository.findByUserId(userId, pageable).map(expenseMapper::toResponse);
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ExpenseResponse> getExpensesByPeriod(UUID userId, LocalDate startDate, LocalDate endDate) {
-        log.info("Fetching expenses for user: {} between {} and {}", userId, startDate, endDate);
+        Page<Expense> expenses;
 
-        return expenseRepository.findByUserIdAndExpenseDateBetween(userId, startDate, endDate)
-                .stream()
-                .map(expenseMapper::toResponse)
-                .toList();
-    }
+        LocalDate startDate = filter.getEffectiveStartDate();
+        LocalDate endDate = filter.getEffectiveEndDate();
+        ExpenseCategory category = filter.category();
 
-    @Override
-    public List<ExpenseResponse> getExpensesByCategoryAndPeriod(UUID userId, ExpenseCategory category, LocalDate startDate, LocalDate endDate) {
-        log.info("Fetching expenses for user: {}, category: {}, period: {} to {}",
-                userId, category, startDate, endDate);
+        if (category != null && startDate != null && endDate != null) {
+            expenses = expenseRepository.findByUserIdAndCategoryAndExpenseDateBetween(
+                    userId,
+                    category,
+                    startDate,
+                    endDate,
+                    pageable
+            );
+        } else if (category != null) {
+            expenses = expenseRepository.findByUserIdAndCategory(
+                    userId,
+                    category,
+                    pageable
+            );
+        } else if (startDate != null && endDate != null) {
+            expenses = expenseRepository.findByUserIdAndExpenseDateBetween(
+                    userId,
+                    startDate,
+                    endDate,
+                    pageable
+            );
+        } else {
+            //fallback
+            expenses = expenseRepository.findByUserId(userId, pageable);
+        }
 
-        return expenseRepository.findByUserIdAndCategoryAndExpenseDateBetween(
-                userId, category, startDate, endDate
-        )
-                .stream()
-                .map(expenseMapper::toResponse)
-                .toList();
+
+        return expenses.map(expenseMapper::toResponse);
     }
 }
