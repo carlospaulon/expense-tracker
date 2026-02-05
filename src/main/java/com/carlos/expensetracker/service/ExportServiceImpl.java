@@ -34,7 +34,7 @@ public class ExportServiceImpl implements ExportService {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              PrintWriter writer = new PrintWriter(baos, false, StandardCharsets.UTF_8)) {
 
-            writer.println("ID,Date,Category,Description");
+            writer.println("ID,Date,Category,Amount,Description");
 
             for (ExpenseResponse expense : expenses) {
                 writer.printf("%s,%s,%s,%.2f,\"%s\"%n",
