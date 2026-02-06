@@ -85,18 +85,18 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     );
 
     @Query("""
-             SELECT new com.carlos.expensetracker.dto.response.ExpenseSummaryResponse(
-                 COALESCE(SUM(e.amount), 0),
-                 COUNT(e),
-                 COALESCE(AVG(e.amount), 0),
-                 COALESCE(MIN(e.amount), 0),
-                 COALESCE(MAX(e.amount), 0),
-                 :startDate,
-                 :endDate
-                 )
-             FROM Expense e
-             WHERE e.user.id = :userId
-             AND e.expenseDate BETWEEN :startDate AND :endDate
+                SELECT new com.carlos.expensetracker.dto.response.ExpenseSummaryResponse(
+                    COALESCE(SUM(e.amount), CAST(0 AS bigdecimal)),
+                    COUNT(e),
+                    COALESCE(AVG(e.amount), CAST(0 AS bigdecimal)),
+                    COALESCE(MIN(e.amount), CAST(0 AS bigdecimal)),
+                    COALESCE(MAX(e.amount), CAST(0 AS bigdecimal)),
+                    :startDate,
+                    :endDate
+                )
+                FROM Expense e
+                WHERE e.user.id = :userId
+                AND e.expenseDate BETWEEN :startDate AND :endDate
             """)
     ExpenseSummaryResponse calculateSummary(
             @Param("userId") UUID userId,
@@ -105,17 +105,17 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     );
 
     @Query("""
-            SELECT new com.carlos.expensetracker.dto.response.CategorySummaryResponse(
-                e.category,
-                COALESCE(SUM(e.amount), 0),
-                COUNT(e),
-                0
-            )
-            FROM Expense e
-            WHERE e.user.id = :userId
-            AND e.expenseDate BETWEEN :startDate AND :endDate
-            GROUP BY e.category
-            ORDER BY SUM(e.amount) DESC
+                SELECT new com.carlos.expensetracker.dto.response.CategorySummaryResponse(
+                    e.category,
+                    COALESCE(SUM(e.amount), CAST(0 AS bigdecimal)),
+                    COUNT(e),
+                    CAST(0 AS bigdecimal)
+                )
+                FROM Expense e
+                WHERE e.user.id = :userId
+                AND e.expenseDate BETWEEN :startDate AND :endDate
+                GROUP BY e.category
+                ORDER BY SUM(e.amount) DESC
             """)
     List<CategorySummaryResponse> calculateByCategory(
             @Param("userId") UUID userId,
