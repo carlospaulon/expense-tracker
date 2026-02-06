@@ -34,16 +34,18 @@ public class ExportServiceImpl implements ExportService {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              PrintWriter writer = new PrintWriter(baos, false, StandardCharsets.UTF_8)) {
 
-            writer.println("ID,Date,Category,Amount,Description");
+            writer.println("ID;Date;Category;Amount;Description");
 
             for (ExpenseResponse expense : expenses) {
-                writer.printf("%s,%s,%s,%.2f,\"%s\"%n",
+                writer.printf(
+                        "%s;%s;%s;%s;\"%s\"%n",
                         expense.id(),
                         expense.expenseDate(),
                         expense.category(),
-                        expense.amount(),
-                        expense.description() != null ? expense.description().replace("\"", "\"\"") : ""
-
+                        expense.amount().toString().replace(".", ","),
+                        expense.description() != null
+                                ? expense.description().replace("\"", "\"\"")
+                                : ""
                 );
             }
 
