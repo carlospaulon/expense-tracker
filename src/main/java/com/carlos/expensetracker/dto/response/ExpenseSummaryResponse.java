@@ -6,7 +6,7 @@ import java.time.LocalDate;
 public record ExpenseSummaryResponse(
         BigDecimal totalAmount,
         Long totalCount,
-        BigDecimal averageAmount,
+        Double averageAmount,
         BigDecimal minAmount,
         BigDecimal maxAmount,
         LocalDate  periodStart,
