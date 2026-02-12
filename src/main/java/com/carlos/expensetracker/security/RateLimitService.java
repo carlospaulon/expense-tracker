@@ -73,6 +73,10 @@ public class RateLimitService {
         }
     }
 
+    public void clearRate(String userId) {
+        buckets.remove(userId);
+    }
+
     @Scheduled(fixedRate = 600000) //10min
     public void evictInactiveBuckets() {
         buckets.entrySet().removeIf(entry -> {
