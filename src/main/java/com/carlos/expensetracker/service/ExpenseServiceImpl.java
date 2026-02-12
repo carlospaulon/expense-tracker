@@ -7,12 +7,14 @@ import com.carlos.expensetracker.dto.response.ExpenseResponse;
 import com.carlos.expensetracker.entity.Expense;
 import com.carlos.expensetracker.entity.User;
 import com.carlos.expensetracker.entity.enums.ExpenseCategory;
+import com.carlos.expensetracker.exception.DatabaseException;
 import com.carlos.expensetracker.exception.ResourceNotFoundException;
 import com.carlos.expensetracker.mapper.ExpenseMapper;
 import com.carlos.expensetracker.repository.ExpenseRepository;
 import com.carlos.expensetracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExpenseServiceImpl implements ExpenseService{
+public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
     private final ExpenseMapper expenseMapper;
@@ -40,10 +42,18 @@ public class ExpenseServiceImpl implements ExpenseService{
 
         Expense expense = expenseMapper.toEntity(request, user);
 
-        Expense savedExpense = expenseRepository.save(expense);
-        log.debug("Expense created: {} (amount: {})", savedExpense.getId(), savedExpense.getAmount());
+        try {
+            Expense savedExpense = expenseRepository.save(expense);
+            log.debug("Expense created: {} (amount: {})", savedExpense.getId(), savedExpense.getAmount());
 
-        return expenseMapper.toResponse(savedExpense);
+            return expenseMapper.toResponse(savedExpense);
+
+        } catch (DataAccessException ex) {
+            log.warn("Database error while creating expense for user: {}", userId, ex);
+            throw new DatabaseException("Failed to save expense", ex);
+        }
+
+
     }
 
     @Override

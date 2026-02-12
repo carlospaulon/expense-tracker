@@ -7,6 +7,7 @@ import com.carlos.expensetracker.dto.response.SignUpResponse;
 import com.carlos.expensetracker.entity.User;
 import com.carlos.expensetracker.entity.enums.UserRole;
 import com.carlos.expensetracker.exception.BadRequestException;
+import com.carlos.expensetracker.exception.ConflictException;
 import com.carlos.expensetracker.exception.ErrorMessages;
 import com.carlos.expensetracker.exception.UnauthorizedException;
 import com.carlos.expensetracker.repository.UserRepository;
@@ -43,7 +44,7 @@ public class AuthServiceImpl implements AuthService{
         if (userRepository.existsByEmail(request.email())) {
             log.warn("Signup failed: Email already registered - {}", request.email());
 
-            throw new BadRequestException(ErrorMessages.EMAIL_ALREADY_EXISTS);
+            throw new ConflictException(ErrorMessages.EMAIL_ALREADY_EXISTS);
         }
 
         //if username exist
