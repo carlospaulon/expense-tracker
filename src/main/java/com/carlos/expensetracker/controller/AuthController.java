@@ -5,6 +5,7 @@ import com.carlos.expensetracker.dto.request.SignUpRequest;
 import com.carlos.expensetracker.dto.response.LoginResponse;
 import com.carlos.expensetracker.dto.response.SignUpResponse;
 import com.carlos.expensetracker.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class AuthController {
     private final AuthService authService;
 
     //signup endpoint
+    @Operation(summary = "Sign up a new user")
     @PostMapping("/signup")
     public ResponseEntity<SignUpResponse> signUp(@RequestBody @Valid SignUpRequest signUpRequest) {
         log.info("POST /api/auth/signup");
@@ -31,6 +33,7 @@ public class AuthController {
     }
 
     //login endpoint
+    @Operation(summary = "Log in for a user")
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
         log.info("POST /api/auth/login");
