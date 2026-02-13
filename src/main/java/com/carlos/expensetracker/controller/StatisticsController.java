@@ -5,6 +5,7 @@ import com.carlos.expensetracker.dto.response.CategorySummaryResponse;
 import com.carlos.expensetracker.dto.response.ExpenseSummaryResponse;
 import com.carlos.expensetracker.security.CustomUserDetails;
 import com.carlos.expensetracker.service.StatisticsService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class StatisticsController {
 
     private final StatisticsService statisticsService;
 
+    @Operation(summary = "Summary for expenses")
     @GetMapping("/summary")
     public ResponseEntity<ExpenseSummaryResponse> getSummary(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -38,6 +40,7 @@ public class StatisticsController {
         return ResponseEntity.ok(summary);
     }
 
+    @Operation(summary = "Summary for expenses by category")
     @GetMapping("/by-category")
     public ResponseEntity<List<CategorySummaryResponse>> getByCategory(
             @AuthenticationPrincipal CustomUserDetails userDetails,
