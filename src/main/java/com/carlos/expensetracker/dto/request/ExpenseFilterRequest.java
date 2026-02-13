@@ -2,19 +2,24 @@ package com.carlos.expensetracker.dto.request;
 
 import com.carlos.expensetracker.entity.enums.ExpenseCategory;
 import com.carlos.expensetracker.entity.enums.FilterPeriod;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
 public record ExpenseFilterRequest(
+        @Schema(description = "Expense category", example = "GROCERIES")
         ExpenseCategory category,
 
+        @Schema(description = "Expense period", example = "LAST_MONTH")
         FilterPeriod period,
 
+        @Schema(description = "Start date (ISO format)", example = "2026-02-01")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate startDate,
 
+        @Schema(description = "End date (ISO format)", example = "2026-02-28")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate endDate
 ) {

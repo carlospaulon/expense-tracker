@@ -7,9 +7,16 @@ import com.carlos.expensetracker.dto.response.ExpenseResponse;
 import com.carlos.expensetracker.security.CustomUserDetails;
 import com.carlos.expensetracker.service.ExpenseService;
 import com.carlos.expensetracker.service.ExportService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,6 +38,7 @@ public class ExpenseController {
     private final ExpenseService expenseService;
     private final ExportService exportService;
 
+    @Operation(summary = "Create expense")
     @PostMapping
     public ResponseEntity<ExpenseResponse> createExpense(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -45,11 +53,21 @@ public class ExpenseController {
 
     }
 
+    //todo: don't show error message with token issues
+    @Operation(
+            summary = "Get all expenses",
+            description = "Returns a paginated list of expenses for a authenticated user"
+    )
+    @Parameters({
+            @Parameter(name = "page", description = "Page number (0-based)", example = "0"),
+            @Parameter(name = "size", description = "Number of expenses per page", example = "10"),
+            @Parameter(name = "sort", description = "Sorting page (e.g. expenseDate,desc)", example = "expenseDate,desc"),
+    })
     @GetMapping
     public ResponseEntity<Page<ExpenseResponse>> getAllExpenses(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PageableDefault(size = 10, sort = "expenseDate", direction = Sort.Direction.DESC)
-            Pageable pageable
+            @Parameter(hidden = true) Pageable pageable
     ) {
         UUID userId = userDetails.getUserId();
         log.info("GET /api/expenses - user: {} (page: {})", userId, pageable.getPageNumber());
@@ -59,6 +77,7 @@ public class ExpenseController {
         return ResponseEntity.ok(expenses);
     }
 
+    @Operation(summary = "Get expense by id")
     @GetMapping("/{id}")
     public ResponseEntity<ExpenseResponse> getExpenseById(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -72,6 +91,7 @@ public class ExpenseController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Update expense by id")
     @PutMapping("/{id}")
     public ResponseEntity<ExpenseResponse> updateExpense(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -86,6 +106,10 @@ public class ExpenseController {
         return ResponseEntity.ok(expense);
     }
 
+    @Operation(summary = "Delete expense by id")
+    @ApiResponses(
+            @ApiResponse(responseCode = "204", description = "Excluded expense")
+    )
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteExpense(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -99,12 +123,23 @@ public class ExpenseController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Search expenses")
+    @Parameters({
+            @Parameter(name = "page", description = "Page number (0-based)", example = "0"),
+            @Parameter(name = "size", description = "Number of expenses per page", example = "10"),
+            @Parameter(name = "sort", description = "Sorting page (e.g. expenseDate,desc)", example = "expenseDate,desc"),
+    })
     @GetMapping("/search")
     public ResponseEntity<Page<ExpenseResponse>> searchExpenses(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid ExpenseFilterRequest filter,
+
+            @ParameterObject
+            @Parameter(required = false, description = "Optional filter for export")
+            @Valid
+            ExpenseFilterRequest filter,
+
             @PageableDefault(size = 10, sort = "expenseDate", direction = Sort.Direction.DESC)
-            Pageable pageable
+            @Parameter(hidden = true) Pageable pageable
     ) {
         UUID userId = userDetails.getUserId();
         log.info("GET /api/expenses/search - user: {}, filter: {}", userId, filter);
@@ -114,10 +149,20 @@ public class ExpenseController {
         return ResponseEntity.ok(expenses);
     }
 
-    @GetMapping("/export/csv")
+    @Operation(summary = "Export as a csv file the expenses by user")
+    @ApiResponse(
+            responseCode = "200",
+            description = "CSV file generated",
+            content = @Content(mediaType = "text/csv")
+    )
+    @GetMapping(value = "/export/csv", produces = "text/csv")
     public ResponseEntity<byte[]> exportToCsv(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid ExpenseFilterRequest filter
+
+            @ParameterObject
+            @Parameter(required = false, description = "Optional filter for export")
+            @Valid
+            ExpenseFilterRequest filter
     ) {
         UUID userId = userDetails.getUserId();
         log.info("GET /api/expenses/export/csv - user: {}", userId);
