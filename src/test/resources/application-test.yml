@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: expensetracker-test
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+
+  flyway:
+    enabled: false
+
+  h2:
+    console:
+      enabled: false
+
+  logging:
+    level:
+      root: ERROR
+      com.carlos.expensetracker: INFO
+      org.springframework.security: ERROR
+      org.hibernate: ERROR
+
+  main:
+    banner-mode: off
+
+jwt:
+  secret: Qk1lO29WiKmgfcG/WTCZ/HQ/i+k/QbDm0m0A2f8TihM=
+  expiration: 3600000
