@@ -14,6 +14,8 @@ import com.carlos.expensetracker.repository.ExpenseRepository;
 import com.carlos.expensetracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseMapper expenseMapper;
 
     @Override
+    @CacheEvict(value = "expenses", allEntries = true)
     @Transactional
     public ExpenseResponse createExpense(UUID userId, CreateExpenseRequest request) {
         log.info("Creating expense for user: {}", userId);
@@ -68,9 +71,16 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Cacheable(
+            value = "expenses",
+            key = "#userId + '-' + #pageable.pageNumber + '-' + #pageable.pageSize",
+            unless = "#result.isEmpty()"
+    )
     @Transactional(readOnly = true)
     public Page<ExpenseResponse> getAllExpenses(UUID userId, Pageable pageable) {
         log.info("Fetching all expenses for user: {} (page: {})", userId, pageable.getPageNumber());
+
+        log.warn("DATABASE HIT");
 
         return expenseRepository.findByUserId(userId, pageable)
                 .map(expenseMapper::toResponse);
@@ -88,6 +98,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @CacheEvict(value = "expenses", allEntries = true)
     @Transactional
     public ExpenseResponse updateExpense(UUID userId, UUID expenseId, UpdateExpenseRequest request) {
         log.info("Updating expense: {} for user: {}", expenseId, userId);
@@ -104,6 +115,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @CacheEvict(value = "expenses", allEntries = true)
     @Transactional
     public void deleteExpense(UUID userId, UUID expenseId) {
         log.info("Deleting expense: {} for user: {}", expenseId, userId);
